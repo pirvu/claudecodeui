@@ -166,7 +166,7 @@
       "instanceName": {
         "label": "Instance Name",
         "description": "A custom name to identify this instance (shown in the sidebar)",
-        "placeholder": "e.g. My Work Machine"
+        "placeholder": "e.g., My Work Machine"
       },
       "accentColor": {
         "label": "Accent Color",

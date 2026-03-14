@@ -6,7 +6,7 @@ import SettingsCard from '../SettingsCard';
 import SettingsRow from '../SettingsRow';
 import SettingsSection from '../SettingsSection';
 import SettingsToggle from '../SettingsToggle';
-import { useInstanceSettings } from '../../../../hooks/useInstanceSettings';
+import { useInstanceSettings, isValidHexColor } from '../../../../hooks/useInstanceSettings';
 
 const PRESET_COLORS = [
   { value: '#3b82f6', label: 'Blue' },
@@ -43,7 +43,9 @@ export default function AppearanceSettingsTab({
   const { t } = useTranslation('settings');
   const { instanceName, accentColor, setInstanceName, setAccentColor } = useInstanceSettings();
 
-  const isCustomColor = accentColor && !PRESET_COLORS.some((c) => c.value === accentColor);
+  // Only use a color in inline styles if it's a validated hex value
+  const safeAccentColor = isValidHexColor(accentColor) ? accentColor : '';
+  const isCustomColor = safeAccentColor && !PRESET_COLORS.some((c) => c.value === safeAccentColor);
 
   return (
     <div className="space-y-8">
@@ -88,24 +90,24 @@ export default function AppearanceSettingsTab({
               <label
                 title="Custom color"
                 className="relative h-6 w-6 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-muted-foreground/40 transition-transform hover:scale-110"
-                style={isCustomColor ? { borderColor: accentColor, boxShadow: `0 0 0 2px ${accentColor}` } : undefined}
+                style={isCustomColor ? { borderColor: safeAccentColor, boxShadow: `0 0 0 2px ${safeAccentColor}` } : undefined}
               >
                 <input
                   type="color"
-                  value={accentColor || '#3b82f6'}
+                  value={safeAccentColor || '#3b82f6'}
                   onChange={(e) => setAccentColor(e.target.value)}
                   className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   aria-label="Custom color"
                 />
                 <span
                   className="flex h-full w-full items-center justify-center text-[10px] font-bold text-muted-foreground/60"
-                  style={isCustomColor ? { backgroundColor: accentColor, color: 'white' } : undefined}
+                  style={isCustomColor ? { backgroundColor: safeAccentColor, color: 'white' } : undefined}
                 >
                   {isCustomColor ? '' : '+'}
                 </span>
               </label>
 
-              {accentColor && (
+              {safeAccentColor && (
                 <button
                   type="button"
                   onClick={() => setAccentColor('')}

@@ -6,14 +6,25 @@ export type InstanceSettings = {
 };
 
 const STORAGE_KEY = 'instanceSettings';
+const MAX_INSTANCE_NAME_LENGTH = 64;
+const HEX_COLOR_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 const DEFAULTS: InstanceSettings = {
   instanceName: '',
   accentColor: '',
 };
 
-/** Convert a hex color string (#rrggbb or #rgb) to "H S% L%" CSS HSL components. */
+/** Returns true if the string is a valid CSS hex color (#rgb or #rrggbb, case-insensitive). */
+export function isValidHexColor(value: string): boolean {
+  return HEX_COLOR_RE.test(value);
+}
+
+/** Convert a hex color string (#rrggbb or #rgb, case-insensitive) to "H S% L%" CSS HSL components. */
 export function hexToHslComponents(hex: string): string | null {
+  if (!isValidHexColor(hex)) {
+    return null;
+  }
+
   const cleaned = hex.replace('#', '');
   let r: number, g: number, b: number;
 
@@ -21,12 +32,10 @@ export function hexToHslComponents(hex: string): string | null {
     r = parseInt(cleaned[0] + cleaned[0], 16);
     g = parseInt(cleaned[1] + cleaned[1], 16);
     b = parseInt(cleaned[2] + cleaned[2], 16);
-  } else if (cleaned.length === 6) {
+  } else {
     r = parseInt(cleaned.slice(0, 2), 16);
     g = parseInt(cleaned.slice(2, 4), 16);
     b = parseInt(cleaned.slice(4, 6), 16);
-  } else {
-    return null;
   }
 
   const rn = r / 255;
@@ -84,6 +93,20 @@ export function applyAccentColor(hex: string | null) {
   root.style.setProperty('--ring', hsl);
 }
 
+function sanitizeInstanceName(value: unknown): string {
+  if (typeof value !== 'string') {
+    return DEFAULTS.instanceName;
+  }
+  return value.slice(0, MAX_INSTANCE_NAME_LENGTH);
+}
+
+function sanitizeAccentColor(value: unknown): string {
+  if (typeof value !== 'string' || !isValidHexColor(value)) {
+    return DEFAULTS.accentColor;
+  }
+  return value;
+}
+
 function readSettings(): InstanceSettings {
   if (typeof window === 'undefined') {
     return DEFAULTS;
@@ -94,8 +117,8 @@ function readSettings(): InstanceSettings {
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<InstanceSettings>;
       return {
-        instanceName: typeof parsed.instanceName === 'string' ? parsed.instanceName : DEFAULTS.instanceName,
-        accentColor: typeof parsed.accentColor === 'string' ? parsed.accentColor : DEFAULTS.accentColor,
+        instanceName: sanitizeInstanceName(parsed.instanceName),
+        accentColor: sanitizeAccentColor(parsed.accentColor),
       };
     }
   } catch {
@@ -122,11 +145,13 @@ export function useInstanceSettings() {
   }, [settings]);
 
   const setInstanceName = (name: string) => {
-    setSettings((prev) => ({ ...prev, instanceName: name }));
+    setSettings((prev) => ({ ...prev, instanceName: sanitizeInstanceName(name) }));
   };
 
   const setAccentColor = (color: string) => {
-    setSettings((prev) => ({ ...prev, accentColor: color }));
+    // Allow empty string to clear the accent color
+    const sanitized = color === '' ? '' : sanitizeAccentColor(color);
+    setSettings((prev) => ({ ...prev, accentColor: sanitized }));
   };
 
   return {
@@ -136,3 +161,4 @@ export function useInstanceSettings() {
     setAccentColor,
   };
 }
+
