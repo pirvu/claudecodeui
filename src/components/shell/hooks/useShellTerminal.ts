@@ -33,8 +33,10 @@ type UseShellTerminalOptions = {
 
 type UseShellTerminalResult = {
   isInitialized: boolean;
+  isScrolledUp: boolean;
   clearTerminalScreen: () => void;
   disposeTerminal: () => void;
+  scrollToBottom: () => void;
 };
 
 export function useShellTerminal({
@@ -52,6 +54,7 @@ export function useShellTerminal({
   closeSocket,
 }: UseShellTerminalOptions): UseShellTerminalResult {
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isScrolledUp, setIsScrolledUp] = useState(false);
   const resizeTimeoutRef = useRef<number | null>(null);
   const selectedProjectKey = selectedProject?.fullPath || selectedProject?.path || '';
   const hasSelectedProject = Boolean(selectedProject);
@@ -59,6 +62,10 @@ export function useShellTerminal({
   useEffect(() => {
     ensureXtermFocusStyles();
   }, []);
+
+  const scrollToBottom = useCallback(() => {
+    terminalRef.current?.scrollToBottom();
+  }, [terminalRef]);
 
   const clearTerminalScreen = useCallback(() => {
     if (!terminalRef.current) {
@@ -77,6 +84,7 @@ export function useShellTerminal({
 
     fitAddonRef.current = null;
     setIsInitialized(false);
+    setIsScrolledUp(false);
   }, [fitAddonRef, terminalRef]);
 
   useEffect(() => {
@@ -212,6 +220,10 @@ export function useShellTerminal({
 
     setIsInitialized(true);
 
+    const scrollSubscription = nextTerminal.onScroll((viewportY) => {
+      setIsScrolledUp(viewportY < nextTerminal.buffer.active.baseY);
+    });
+
     const dataSubscription = nextTerminal.onData((data) => {
       sendSocketMessage(wsRef.current, {
         type: 'input',
@@ -249,6 +261,7 @@ export function useShellTerminal({
         window.clearTimeout(resizeTimeoutRef.current);
         resizeTimeoutRef.current = null;
       }
+      scrollSubscription.dispose();
       dataSubscription.dispose();
       closeSocket();
       disposeTerminal();
@@ -272,7 +285,9 @@ export function useShellTerminal({
 
   return {
     isInitialized,
+    isScrolledUp,
     clearTerminalScreen,
     disposeTerminal,
+    scrollToBottom,
   };
 }

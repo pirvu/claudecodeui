@@ -67,10 +67,12 @@ export type UseShellRuntimeResult = {
   isConnected: boolean;
   isInitialized: boolean;
   isConnecting: boolean;
+  isScrolledUp: boolean;
   authUrl: string;
   authUrlVersion: number;
   connectToShell: () => void;
   disconnectFromShell: () => void;
+  scrollToBottom: () => void;
   openAuthUrlInBrowser: (url?: string) => boolean;
   copyAuthUrlToClipboard: (url?: string) => Promise<boolean>;
 };

@@ -234,7 +234,8 @@
     "resumeSession": "Sitzung fortsetzen: {{displayName}}...",
     "runCommand": "{{command}} in {{projectName}} ausführen",
     "startCli": "Claude CLI wird in {{projectName}} gestartet",
-    "defaultCommand": "Befehl"
+    "defaultCommand": "Befehl",
+    "scrollToBottom": "Nach unten scrollen"
   },
   "claudeStatus": {
     "actions": {

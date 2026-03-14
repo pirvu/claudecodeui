@@ -216,7 +216,8 @@
     "resumeSession": "恢复会话：{{displayName}}...",
     "runCommand": "在 {{projectName}} 中运行 {{command}}",
     "startCli": "在 {{projectName}} 中启动 Claude CLI",
-    "defaultCommand": "命令"
+    "defaultCommand": "命令",
+    "scrollToBottom": "滚动到底部"
   },
   "claudeStatus": {
     "actions": {
