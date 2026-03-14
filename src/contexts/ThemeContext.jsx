@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { applyAccentColor } from '../hooks/useInstanceSettings';
 
 const ThemeContext = createContext();
 
@@ -13,6 +14,19 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }) => {
   // Check for saved theme preference or default to system preference
   const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Apply saved accent color as early as possible
+    try {
+      const raw = localStorage.getItem('instanceSettings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.accentColor === 'string' && parsed.accentColor) {
+          applyAccentColor(parsed.accentColor);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     // Check localStorage first
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {

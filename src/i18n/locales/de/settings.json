@@ -140,6 +140,19 @@
         "label": "Schriftgröße",
         "description": "Editor-Schriftgröße in Pixeln"
       }
+    },
+    "instanceSettings": {
+      "title": "Instanz-Identität",
+      "instanceName": {
+        "label": "Instanzname",
+        "description": "Ein benutzerdefinierter Name für diese Instanz (im Seitenbereich angezeigt)",
+        "placeholder": "z.B. Mein Arbeitsrechner"
+      },
+      "accentColor": {
+        "label": "Akzentfarbe",
+        "description": "Farbe anpassen, um Instanzen zu unterscheiden",
+        "reset": "Standard zurücksetzen"
+      }
     }
   },
   "mcpForm": {

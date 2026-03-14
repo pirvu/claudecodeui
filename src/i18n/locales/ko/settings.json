@@ -107,7 +107,6 @@
     "tasks": "작업",
     "notifications": "알림",
     "plugins": "플러그인"
-
   },
   "notifications": {
     "title": "알림",
@@ -160,6 +159,19 @@
       "fontSize": {
         "label": "글꼴 크기",
         "description": "에디터 글꼴 크기 (픽셀)"
+      }
+    },
+    "instanceSettings": {
+      "title": "인스턴스 식별",
+      "instanceName": {
+        "label": "인스턴스 이름",
+        "description": "이 인스턴스를 식별하는 사용자 지정 이름 (사이드바에 표시)",
+        "placeholder": "예: 내 작업 컴퓨터"
+      },
+      "accentColor": {
+        "label": "강조 색상",
+        "description": "인스턴스를 구분하기 위해 기본 색상을 맞춤 설정",
+        "reset": "기본값으로 재설정"
       }
     }
   },

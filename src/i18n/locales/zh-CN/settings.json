@@ -107,7 +107,6 @@
     "tasks": "任务",
     "notifications": "通知",
     "plugins": "插件"
-    
   },
   "notifications": {
     "title": "通知",
@@ -160,6 +159,19 @@
       "fontSize": {
         "label": "字体大小",
         "description": "编辑器字体大小（px）"
+      }
+    },
+    "instanceSettings": {
+      "title": "实例标识",
+      "instanceName": {
+        "label": "实例名称",
+        "description": "自定义名称以标识此实例（显示在侧边栏中）",
+        "placeholder": "例如：我的工作机器"
+      },
+      "accentColor": {
+        "label": "强调色",
+        "description": "自定义主色以区分不同实例",
+        "reset": "恢复默认"
       }
     }
   },
