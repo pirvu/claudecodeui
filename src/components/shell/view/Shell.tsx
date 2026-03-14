@@ -45,8 +45,10 @@ export default function Shell({
   const { t } = useTranslation('chat');
   const [isRestarting, setIsRestarting] = useState(false);
   const [cliPromptOptions, setCliPromptOptions] = useState<CliPromptOption[] | null>(null);
+  const [promptQuestion, setPromptQuestion] = useState<string | null>(null);
   const promptCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onOutputRef = useRef<(() => void) | null>(null);
+  const onUserInputRef = useRef<(() => void) | null>(null);
 
   const {
     terminalContainerRef,
@@ -71,6 +73,7 @@ export default function Shell({
     isRestarting,
     onProcessComplete,
     onOutputRef,
+    onUserInputRef,
   });
 
   // Check xterm.js buffer for CLI prompt patterns (❯ N. label)
@@ -97,21 +100,25 @@ export default function Shell({
 
     if (footerIdx === -1) {
       setCliPromptOptions(null);
+      setPromptQuestion(null);
       return;
     }
 
     // Scan upward from footer collecting numbered options.
     // Non-matching lines are allowed (multi-line labels, blank separators)
     // because CLI prompts may wrap options across multiple terminal rows.
+    const OPTION_LINE_PATTERN = /^\s*[❯›>]?\s*(\d+)\.\s+(.+)/;
     const optMap = new Map<string, string>();
     const optScanStart = Math.max(0, footerIdx - PROMPT_OPTION_SCAN_LINES);
+    let firstOptionIdx = -1;
     for (let i = footerIdx - 1; i >= optScanStart; i--) {
-      const match = lines[i].match(/^\s*[❯›>]?\s*(\d+)\.\s+(.+)/);
+      const match = lines[i].match(OPTION_LINE_PATTERN);
       if (match) {
         const num = match[1];
         const label = match[2].trim();
         if (parseInt(num, 10) <= PROMPT_MAX_OPTIONS && label.length > 0 && !optMap.has(num)) {
           optMap.set(num, label);
+          firstOptionIdx = i;
         }
       }
     }
@@ -122,7 +129,26 @@ export default function Shell({
       else break;
     }
 
-    setCliPromptOptions(valid.length >= PROMPT_MIN_OPTIONS ? valid : null);
+    if (valid.length < PROMPT_MIN_OPTIONS) {
+      setCliPromptOptions(null);
+      setPromptQuestion(null);
+      return;
+    }
+
+    // Extract question/context text from lines above the first option
+    let questionText: string | null = null;
+    if (firstOptionIdx > 0) {
+      for (let i = firstOptionIdx - 1; i >= 0; i--) {
+        const trimmed = lines[i].trim();
+        if (trimmed && !OPTION_LINE_PATTERN.test(trimmed)) {
+          questionText = trimmed.replace(/^[❯›>]\s*/, '');
+          break;
+        }
+      }
+    }
+
+    setCliPromptOptions(valid);
+    setPromptQuestion(questionText);
   }, [terminalRef]);
 
   // Schedule prompt check after terminal output (debounced)
@@ -135,6 +161,14 @@ export default function Shell({
   useEffect(() => {
     onOutputRef.current = schedulePromptCheck;
   }, [schedulePromptCheck]);
+
+  // Wire up the onUserInput callback to dismiss the prompt bar
+  useEffect(() => {
+    onUserInputRef.current = () => {
+      setCliPromptOptions(null);
+      setPromptQuestion(null);
+    };
+  }, []);
 
   // Cleanup prompt check timer on unmount
   useEffect(() => {
@@ -151,6 +185,7 @@ export default function Shell({
         promptCheckTimer.current = null;
       }
       setCliPromptOptions(null);
+      setPromptQuestion(null);
     }
   }, [isConnected]);
 
@@ -282,6 +317,11 @@ export default function Shell({
             className="absolute inset-x-0 bottom-0 z-10 border-t border-gray-700/80 bg-gray-800/95 px-3 py-2 backdrop-blur-sm"
             onMouseDown={(e) => e.preventDefault()}
           >
+            {promptQuestion && (
+              <div className="mb-1.5 truncate text-xs text-gray-400" title={promptQuestion}>
+                {promptQuestion}
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-2">
               {cliPromptOptions.map((opt) => (
                 <button
@@ -290,6 +330,7 @@ export default function Shell({
                   onClick={() => {
                     sendInput(opt.number);
                     setCliPromptOptions(null);
+                    setPromptQuestion(null);
                   }}
                   className="max-w-36 truncate rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700"
                   title={`${opt.number}. ${opt.label}`}
@@ -302,10 +343,25 @@ export default function Shell({
                 onClick={() => {
                   sendInput('\x1b');
                   setCliPromptOptions(null);
+                  setPromptQuestion(null);
                 }}
                 className="rounded bg-gray-700 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors hover:bg-gray-600"
               >
                 Esc
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCliPromptOptions(null);
+                  setPromptQuestion(null);
+                }}
+                className="ml-auto rounded p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-200"
+                title="Dismiss"
+                aria-label="Dismiss prompt bar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
               </button>
             </div>
           </div>

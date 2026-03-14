@@ -29,6 +29,7 @@ type UseShellTerminalOptions = {
   authUrlRef: MutableRefObject<string>;
   copyAuthUrlToClipboard: (url?: string) => Promise<boolean>;
   closeSocket: () => void;
+  onUserInputRef?: MutableRefObject<(() => void) | null>;
 };
 
 type UseShellTerminalResult = {
@@ -50,6 +51,7 @@ export function useShellTerminal({
   authUrlRef,
   copyAuthUrlToClipboard,
   closeSocket,
+  onUserInputRef,
 }: UseShellTerminalOptions): UseShellTerminalResult {
   const [isInitialized, setIsInitialized] = useState(false);
   const resizeTimeoutRef = useRef<number | null>(null);
@@ -217,6 +219,7 @@ export function useShellTerminal({
         type: 'input',
         data,
       });
+      onUserInputRef?.current?.();
     });
 
     const resizeObserver = new ResizeObserver(() => {
