@@ -109,8 +109,11 @@ function showStatus() {
     }
 
     // Environment variables
+    const host = process.env.HOST || '0.0.0.0';
+    const displayHost = host === '0.0.0.0' ? 'localhost' : host;
     console.log(`\n${c.info('[INFO]')} Configuration:`);
     console.log(`       PORT: ${c.bright(process.env.PORT || '3001')} ${c.dim(process.env.PORT ? '' : '(default)')}`);
+    console.log(`       HOST: ${c.bright(host)} ${c.dim(process.env.HOST ? '' : '(default)')}`);
     console.log(`       DATABASE_PATH: ${c.dim(process.env.DATABASE_PATH || '(using default location)')}`);
     console.log(`       CLAUDE_CLI_PATH: ${c.dim(process.env.CLAUDE_CLI_PATH || 'claude (default)')}`);
     console.log(`       CONTEXT_WINDOW: ${c.dim(process.env.CONTEXT_WINDOW || '160000 (default)')}`);
@@ -132,9 +135,10 @@ function showStatus() {
     console.log('\n' + c.dim('═'.repeat(60)));
     console.log(`\n${c.tip('[TIP]')} Hints:`);
     console.log(`      ${c.dim('>')} Use ${c.bright('cloudcli --port 8080')} to run on a custom port`);
+    console.log(`      ${c.dim('>')} Use ${c.bright('cloudcli --host 0.0.0.0')} to listen on all interfaces`);
     console.log(`      ${c.dim('>')} Use ${c.bright('cloudcli --database-path /path/to/db')} for custom database`);
     console.log(`      ${c.dim('>')} Run ${c.bright('cloudcli help')} for all options`);
-    console.log(`      ${c.dim('>')} Access the UI at http://localhost:${process.env.PORT || '3001'}\n`);
+    console.log(`      ${c.dim('>')} Access the UI at http://${displayHost}:${process.env.PORT || '3001'}\n`);
 }
 
 // Show help
@@ -157,6 +161,7 @@ Commands:
 
 Options:
   -p, --port <port>           Set server port (default: 3001)
+  --host <host>               Set server host/IP to listen on (default: 0.0.0.0)
   --database-path <path>      Set custom database location
   -h, --help                  Show this help information
   -v, --version               Show version information
@@ -165,11 +170,14 @@ Examples:
   $ cloudcli                        # Start with defaults
   $ cloudcli --port 8080            # Start on port 8080
   $ cloudcli -p 3000                # Short form for port
+  $ cloudcli --host 127.0.0.1       # Listen on localhost only
+  $ cloudcli --host 0.0.0.0         # Listen on all interfaces
   $ cloudcli start --port 4000      # Explicit start command
   $ cloudcli status                 # Show configuration
 
 Environment Variables:
   PORT                Set server port (default: 3001)
+  HOST                Set server host/IP to listen on (default: 0.0.0.0)
   DATABASE_PATH       Set custom database location
   CLAUDE_CLI_PATH     Set custom Claude CLI path
   CONTEXT_WINDOW      Set context window size (default: 160000)
@@ -263,6 +271,10 @@ function parseArgs(args) {
             parsed.options.port = args[++i];
         } else if (arg.startsWith('--port=')) {
             parsed.options.port = arg.split('=')[1];
+        } else if (arg === '--host') {
+            parsed.options.host = args[++i];
+        } else if (arg.startsWith('--host=')) {
+            parsed.options.host = arg.split('=')[1];
         } else if (arg === '--database-path') {
             parsed.options.databasePath = args[++i];
         } else if (arg.startsWith('--database-path=')) {
@@ -287,6 +299,9 @@ async function main() {
     // Apply CLI options to environment variables
     if (options.port) {
         process.env.PORT = options.port;
+    }
+    if (options.host) {
+        process.env.HOST = options.host;
     }
     if (options.databasePath) {
         process.env.DATABASE_PATH = options.databasePath;
