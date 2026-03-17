@@ -234,7 +234,8 @@
     "resumeSession": "Возобновить сеанс: {{displayName}}...",
     "runCommand": "Выполнить {{command}} в {{projectName}}",
     "startCli": "Запуск Claude CLI в {{projectName}}",
-    "defaultCommand": "команда"
+    "defaultCommand": "команда",
+    "scrollToBottom": "Прокрутить вниз"
   },
   "claudeStatus": {
     "actions": {

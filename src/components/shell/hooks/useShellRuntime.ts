@@ -90,7 +90,7 @@ export function useShellRuntime({
     return copyTextToClipboard(url);
   }, []);
 
-  const { isInitialized, clearTerminalScreen, disposeTerminal } = useShellTerminal({
+  const { isInitialized, isScrolledUp, clearTerminalScreen, disposeTerminal, scrollToBottom } = useShellTerminal({
     terminalContainerRef,
     terminalRef,
     fitAddonRef,
@@ -149,6 +149,14 @@ export function useShellRuntime({
     lastSessionIdRef.current = currentSessionId;
   }, [disconnectFromShell, isInitialized, selectedSession?.id]);
 
+  // Scroll to bottom whenever the shell (re)connects so stale viewport
+  // position from a previous session or scroll state does not persist.
+  useEffect(() => {
+    if (isConnected) {
+      scrollToBottom();
+    }
+  }, [isConnected, scrollToBottom]);
+
   return {
     terminalContainerRef,
     terminalRef,
@@ -156,10 +164,12 @@ export function useShellRuntime({
     isConnected,
     isInitialized,
     isConnecting,
+    isScrolledUp,
     authUrl,
     authUrlVersion,
     connectToShell,
     disconnectFromShell,
+    scrollToBottom,
     openAuthUrlInBrowser,
     copyAuthUrlToClipboard,
   };
