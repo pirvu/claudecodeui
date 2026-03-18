@@ -16,6 +16,7 @@ export function useShellRuntime({
   isRestarting,
   onProcessComplete,
   onOutputRef,
+  onUserInputRef,
 }: UseShellRuntimeOptions): UseShellRuntimeResult {
   const terminalContainerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal | null>(null);
@@ -103,6 +104,7 @@ export function useShellRuntime({
     authUrlRef,
     copyAuthUrlToClipboard,
     closeSocket,
+    onUserInputRef,
   });
 
   const { isConnected, isConnecting, connectToShell, disconnectFromShell } = useShellConnection({
