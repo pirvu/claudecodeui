@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next';
 import { Button, Input } from '../../../../shared/view/ui';
 import { IS_PLATFORM } from '../../../../constants/config';
 import { cn } from '../../../../lib/utils';
+import { useInstanceSettings } from '../../../../hooks/useInstanceSettings';
 
 type SearchMode = 'projects' | 'conversations';
 
@@ -39,6 +40,9 @@ export default function SidebarHeader({
   onCollapseSidebar,
   t,
 }: SidebarHeaderProps) {
+  const { instanceName } = useInstanceSettings();
+  const displayName = instanceName.trim() || t('app.title');
+
   const LogoBlock = () => (
     <div className="flex min-w-0 items-center gap-2.5">
       <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-primary/90 shadow-sm">
@@ -46,7 +50,7 @@ export default function SidebarHeader({
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       </div>
-      <h1 className="truncate text-sm font-semibold tracking-tight text-foreground">{t('app.title')}</h1>
+      <h1 className="truncate text-sm font-semibold tracking-tight text-foreground">{displayName}</h1>
     </div>
   );
 

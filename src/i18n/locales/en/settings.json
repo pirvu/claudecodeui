@@ -107,7 +107,6 @@
     "tasks": "Tasks",
     "notifications": "Notifications",
     "plugins": "Plugins"
-
   },
   "notifications": {
     "title": "Notifications",
@@ -160,6 +159,19 @@
       "fontSize": {
         "label": "Font Size",
         "description": "Editor font size in pixels"
+      }
+    },
+    "instanceSettings": {
+      "title": "Instance Identity",
+      "instanceName": {
+        "label": "Instance Name",
+        "description": "A custom name to identify this instance (shown in the sidebar)",
+        "placeholder": "e.g., My Work Machine"
+      },
+      "accentColor": {
+        "label": "Accent Color",
+        "description": "Customize the primary color to differentiate between instances",
+        "reset": "Reset to default"
       }
     }
   },

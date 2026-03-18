@@ -107,7 +107,6 @@
     "tasks": "タスク",
     "notifications": "通知",
     "plugins": "プラグイン"
-
   },
   "notifications": {
     "title": "通知",
@@ -160,6 +159,19 @@
       "fontSize": {
         "label": "フォントサイズ",
         "description": "エディタのフォントサイズ（ピクセル）"
+      }
+    },
+    "instanceSettings": {
+      "title": "インスタンスの識別",
+      "instanceName": {
+        "label": "インスタンス名",
+        "description": "このインスタンスを識別するカスタム名（サイドバーに表示）",
+        "placeholder": "例：私の作業マシン"
+      },
+      "accentColor": {
+        "label": "アクセントカラー",
+        "description": "インスタンスを区別するためのメインカラーをカスタマイズ",
+        "reset": "デフォルトに戻す"
       }
     }
   },
