@@ -298,8 +298,10 @@ export function useSidebarController({
 
   const toggleProject = useCallback((projectName: string) => {
     setExpandedProjects((prev) => {
-      const next = new Set<string>();
-      if (!prev.has(projectName)) {
+      const next = new Set(prev);
+      if (prev.has(projectName)) {
+        next.delete(projectName);
+      } else {
         next.add(projectName);
       }
       return next;
