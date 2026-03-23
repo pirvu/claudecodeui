@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 
 export default defineConfig(({ command, mode }) => {
   // Load env file based on `mode` in the current working directory.
@@ -10,12 +11,19 @@ export default defineConfig(({ command, mode }) => {
   // Otherwise, proxy to the specific host the backend is bound to
   const proxyHost = host === '0.0.0.0' ? 'localhost' : host
   const port = env.PORT || 3001
+  const httpsEnabled = env.HTTPS === 'true'
+
+  const plugins = [react()]
+  if (httpsEnabled) {
+    plugins.push(basicSsl())
+  }
 
   return {
-    plugins: [react()],
+    plugins,
     server: {
       host,
       port: parseInt(env.VITE_PORT) || 5173,
+      https: httpsEnabled ? true : undefined,
       proxy: {
         '/api': `http://${proxyHost}:${port}`,
         '/ws': {

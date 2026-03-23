@@ -111,9 +111,19 @@ function showStatus() {
     // Environment variables
     const host = process.env.HOST || '0.0.0.0';
     const displayHost = host === '0.0.0.0' ? 'localhost' : host;
+    const isHttps = !!(process.env.SSL_CERT_FILE && process.env.SSL_KEY_FILE);
+    const protocol = isHttps ? 'https' : 'http';
     console.log(`\n${c.info('[INFO]')} Configuration:`);
     console.log(`       PORT: ${c.bright(process.env.PORT || '3001')} ${c.dim(process.env.PORT ? '' : '(default)')}`);
     console.log(`       HOST: ${c.bright(host)} ${c.dim(process.env.HOST ? '' : '(default)')}`);
+    console.log(`       HTTPS: ${isHttps ? c.ok('enabled') : c.dim('disabled')}`);
+    if (!isHttps) {
+        console.log(`              ${c.dim('(set SSL_CERT_FILE + SSL_KEY_FILE to enable)')}`);
+    }
+    if (isHttps) {
+        console.log(`       SSL_CERT_FILE: ${c.dim(process.env.SSL_CERT_FILE)}`);
+        console.log(`       SSL_KEY_FILE:  ${c.dim(process.env.SSL_KEY_FILE)}`);
+    }
     console.log(`       DATABASE_PATH: ${c.dim(process.env.DATABASE_PATH || '(using default location)')}`);
     console.log(`       CLAUDE_CLI_PATH: ${c.dim(process.env.CLAUDE_CLI_PATH || 'claude (default)')}`);
     console.log(`       CONTEXT_WINDOW: ${c.dim(process.env.CONTEXT_WINDOW || '160000 (default)')}`);
@@ -136,9 +146,10 @@ function showStatus() {
     console.log(`\n${c.tip('[TIP]')} Hints:`);
     console.log(`      ${c.dim('>')} Use ${c.bright('cloudcli --port 8080')} to run on a custom port`);
     console.log(`      ${c.dim('>')} Use ${c.bright('cloudcli --host 0.0.0.0')} to listen on all interfaces`);
+    console.log(`      ${c.dim('>')} Use ${c.bright('cloudcli --ssl-cert cert.pem --ssl-key key.pem')} for HTTPS`);
     console.log(`      ${c.dim('>')} Use ${c.bright('cloudcli --database-path /path/to/db')} for custom database`);
     console.log(`      ${c.dim('>')} Run ${c.bright('cloudcli help')} for all options`);
-    console.log(`      ${c.dim('>')} Access the UI at http://${displayHost}:${process.env.PORT || '3001'}\n`);
+    console.log(`      ${c.dim('>')} Access the UI at ${protocol}://${displayHost}:${process.env.PORT || '3001'}\n`);
 }
 
 // Show help
@@ -162,6 +173,8 @@ Commands:
 Options:
   -p, --port <port>           Set server port (default: 3001)
   --host <host>               Set server host/IP to listen on (default: 0.0.0.0)
+  --ssl-cert <path>           Path to SSL/TLS certificate file (enables HTTPS)
+  --ssl-key <path>            Path to SSL/TLS private key file (enables HTTPS)
   --database-path <path>      Set custom database location
   -h, --help                  Show this help information
   -v, --version               Show version information
@@ -172,12 +185,15 @@ Examples:
   $ cloudcli -p 3000                # Short form for port
   $ cloudcli --host 127.0.0.1       # Listen on localhost only
   $ cloudcli --host 0.0.0.0         # Listen on all interfaces
+  $ cloudcli --ssl-cert cert.pem --ssl-key key.pem   # Start with HTTPS
   $ cloudcli start --port 4000      # Explicit start command
   $ cloudcli status                 # Show configuration
 
 Environment Variables:
   PORT                Set server port (default: 3001)
   HOST                Set server host/IP to listen on (default: 0.0.0.0)
+  SSL_CERT_FILE       Path to SSL/TLS certificate file (enables HTTPS)
+  SSL_KEY_FILE        Path to SSL/TLS private key file (enables HTTPS)
   DATABASE_PATH       Set custom database location
   CLAUDE_CLI_PATH     Set custom Claude CLI path
   CONTEXT_WINDOW      Set context window size (default: 160000)
@@ -275,6 +291,14 @@ function parseArgs(args) {
             parsed.options.host = args[++i];
         } else if (arg.startsWith('--host=')) {
             parsed.options.host = arg.split('=')[1];
+        } else if (arg === '--ssl-cert') {
+            parsed.options.sslCert = args[++i];
+        } else if (arg.startsWith('--ssl-cert=')) {
+            parsed.options.sslCert = arg.split('=')[1];
+        } else if (arg === '--ssl-key') {
+            parsed.options.sslKey = args[++i];
+        } else if (arg.startsWith('--ssl-key=')) {
+            parsed.options.sslKey = arg.split('=')[1];
         } else if (arg === '--database-path') {
             parsed.options.databasePath = args[++i];
         } else if (arg.startsWith('--database-path=')) {
@@ -302,6 +326,12 @@ async function main() {
     }
     if (options.host) {
         process.env.HOST = options.host;
+    }
+    if (options.sslCert) {
+        process.env.SSL_CERT_FILE = options.sslCert;
+    }
+    if (options.sslKey) {
+        process.env.SSL_KEY_FILE = options.sslKey;
     }
     if (options.databasePath) {
         process.env.DATABASE_PATH = options.databasePath;

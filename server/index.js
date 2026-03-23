@@ -37,6 +37,7 @@ import express from 'express';
 import { WebSocketServer, WebSocket } from 'ws';
 import os from 'os';
 import http from 'http';
+import https from 'https';
 import cors from 'cors';
 import { promises as fsPromises } from 'fs';
 import { spawn } from 'child_process';
@@ -218,7 +219,20 @@ async function setupProjectsWatcher() {
 
 
 const app = express();
-const server = http.createServer(app);
+
+// Create HTTP or HTTPS server based on environment configuration
+let server;
+{
+    const sslCert = process.env.SSL_CERT_FILE;
+    const sslKey = process.env.SSL_KEY_FILE;
+    if (sslCert && sslKey) {
+        const certContent = fs.readFileSync(sslCert);
+        const keyContent = fs.readFileSync(sslKey);
+        server = https.createServer({ cert: certContent, key: keyContent }, app);
+    } else {
+        server = http.createServer(app);
+    }
+}
 
 const ptySessionsMap = new Map();
 const PTY_SESSION_TIMEOUT = 30 * 60 * 1000;
@@ -2495,6 +2509,8 @@ const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 // Show localhost in URL when binding to all interfaces (0.0.0.0 isn't a connectable address)
 const DISPLAY_HOST = HOST === '0.0.0.0' ? 'localhost' : HOST;
+const IS_HTTPS = !!(process.env.SSL_CERT_FILE && process.env.SSL_KEY_FILE);
+const PROTOCOL = IS_HTTPS ? 'https' : 'http';
 
 // Initialize database and start server
 async function startServer() {
@@ -2525,7 +2541,7 @@ async function startServer() {
             console.log(`  ${c.bright('Claude Code UI Server - Ready')}`);
             console.log(c.dim('═'.repeat(63)));
             console.log('');
-            console.log(`${c.info('[INFO]')} Server URL:  ${c.bright('http://' + DISPLAY_HOST + ':' + PORT)}`);
+            console.log(`${c.info('[INFO]')} Server URL:  ${c.bright(PROTOCOL + '://' + DISPLAY_HOST + ':' + PORT)}`);
             console.log(`${c.info('[INFO]')} Installed at: ${c.dim(appInstallPath)}`);
             console.log(`${c.tip('[TIP]')}  Run "cloudcli status" for full configuration details`);
             console.log('');
